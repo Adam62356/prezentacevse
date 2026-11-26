@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odevzdávání prezentací</title>
+<meta name="description" content="Odevzdávárny prezentací – přihlášení e-mailem, bez hesla.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233F6F99'/%3E%3Cpath d='M12 33 L52 16 L30 40 Z' fill='%23fff'/%3E%3Cpath d='M30 40 L52 16 L36 50 Z' fill='%23D7E5F1'/%3E%3C/svg%3E">
+<style>
+  html, body { margin:0; height:100%; background:#EEF1F4; }
+  iframe { position:fixed; inset:0; width:100%; height:100%; border:0; display:block; }
+  .note { font:16px/1.55 system-ui, sans-serif; color:#2B3440; max-width:560px; margin:12vh auto; padding:0 16px; }
+  code { background:#fff; padding:2px 6px; border-radius:6px; }
+</style>
+</head>
+<body>
+<script>
+  /* ===== JEDINÉ NASTAVENÍ: adresa nasazené aplikace z Apps Scriptu (končí na /exec) ===== */
+  const APP_URL = 'https://script.google.com/macros/s/SEM_VLOZTE_ID_NASAZENI/exec';
+
+  if (APP_URL.includes('SEM_VLOZTE')) {
+    document.body.innerHTML = '<div class="note"><h1>Ještě chybí adresa aplikace</h1>' +
+      '<p>Otevřete tento soubor a do řádku <code>APP_URL</code> vložte adresu webové aplikace z Apps Scriptu ' +
+      '(Nasadit → Spravovat nasazení → URL webové aplikace).</p></div>';
+  } else {
+    // parametry z adresy (?r=…, ?login=…&code=…, ?lang=…) se předají aplikaci
+    const frame = document.createElement('iframe');
+    frame.src = APP_URL + location.search;
+    frame.title = 'Odevzdávání prezentací';
+    // celá obrazovka, kopírování, časomíra (zvuk, nezhasínat obrazovku) a rozpoznání druhého monitoru v režimu prezentujícího
+    frame.allow = 'clipboard-write; fullscreen; autoplay; screen-wake-lock; window-management';
+    frame.allowFullscreen = true;
+    document.body.appendChild(frame);
+
+    // aplikace hlásí, kterou odevzdávárnu má otevřenou → adresa v prohlížeči zůstane sdílitelná
+    window.addEventListener('message', e => {
+      const ok = /\.googleusercontent\.com$/.test(new URL(e.origin).hostname) || e.origin === 'https://script.google.com';
+      if (!ok || !e.data || e.data.type !== 'odevzdavarna-url') return;
+      const search = String(e.data.search || '');
+      if (!/^(\?r=[\w%-]+)?$/.test(search)) return;
+      history.replaceState(null, '', location.pathname + search);
+    });
+  }
+</script>
+<noscript><div class="note">Pro odevzdávání je potřeba zapnutý JavaScript.</div></noscript>
+</body>
+</html>
